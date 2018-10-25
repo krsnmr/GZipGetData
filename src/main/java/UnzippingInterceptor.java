@@ -35,14 +35,10 @@ public class UnzippingInterceptor implements Interceptor {
         GzipSource responseBody = new GzipSource(response.body().source());
         Headers strippedHeaders = response.headers().newBuilder().build();
 
-
         String sContType = response.body().contentType().toString();
-
-        // разжимает но возвращает строку, а надо бъект
         RealResponseBody rBody = new RealResponseBody(sContType, contentLength, Okio.buffer(responseBody));
 
         return response.newBuilder().headers(strippedHeaders).body(rBody).build();
-
 
     }
 }
