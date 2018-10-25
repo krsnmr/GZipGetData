@@ -18,9 +18,10 @@ public class Main {
         }
     }
 
-
-
-    private static   String[] GetData() throws IOException
+    /*
+    Получить и разжать GZip данные
+     */
+    private static  String[] GetData() throws IOException
     {
         GzipDataApiInterface gzipApi;
         Retrofit rf = APIClient.ApiClientGZip();

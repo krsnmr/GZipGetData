@@ -9,6 +9,12 @@ import java.io.IOException;
 
 /*
  Разжимание gzip
+ Взял частично отсюда: https://stackoverflow.com/questions/37333498
+ /retrofit-how-to-parse-gzipd-response-without-content-encoding-gzip-header
+ и отсюда
+ https://stackoverflow.com/questions/51901333
+ /okhttp-3-how-to-decompress-gzip-deflate-response-manually-using-java-android
+
  */
 public class UnzippingInterceptor implements Interceptor {
 
@@ -20,41 +26,23 @@ public class UnzippingInterceptor implements Interceptor {
     }
 
     // copied from okhttp3.internal.http.HttpEngine (because is private)
-    private Response unzip(final Response response) throws IOException
-    {
-        if (response.body() == null)
-        {
+    private Response unzip(final Response response) throws IOException {
+        if (response.body() == null) {
             return response;
         }
-        //check if we have gzip response
-        String contentEncoding = response.headers().get("Content-Encoding");
-        System.out.println( contentEncoding);
-        //this is used to decompress gzipped responses
 
-        // Content-Encoding говорят указывать не надо,
-        // тогда использовать только тех методов которые точно имеют сжатые данные
-        if (true)//contentEncoding != null && contentEncoding.equals("gzip"))
-        {
-            //System.out.println( "gzip contentEncoding");
-            Long contentLength = response.body().contentLength();
-            GzipSource responseBody = new GzipSource(response.body().source());
-            Headers strippedHeaders = response.headers().newBuilder().build();
+        Long contentLength = response.body().contentLength();
+        GzipSource responseBody = new GzipSource(response.body().source());
+        Headers strippedHeaders = response.headers().newBuilder().build();
 
 
-            //String contentTxt = response.body().string();
-            //System.out.println("!!!!! unzip 1: "+ contentTxt);
+        String sContType = response.body().contentType().toString();
 
-            String sContType = response.body().contentType().toString();
-            System.out.println("!!!!! unzip2: "+contentLength);
+        // разжимает но возвращает строку, а надо бъект
+        RealResponseBody rBody = new RealResponseBody(sContType, contentLength, Okio.buffer(responseBody));
 
-            // разжимает но возвращает строку, а надо бъект
-            RealResponseBody rBody = new RealResponseBody(sContType, contentLength, Okio.buffer(responseBody));
+        return response.newBuilder().headers(strippedHeaders).body(rBody).build();
 
-            return response.newBuilder().headers(strippedHeaders).body(rBody).build();
-        }
-        else
-        {
-            return response;
-        }
+
     }
 }
